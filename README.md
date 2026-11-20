@@ -86,6 +86,13 @@ cd ..\frontend; npm run typecheck; npm run build
   - 後端 REST API（`/ops/*`）透過 `X-Ops-Key` 與百分比編碼的 `X-Ops-User` 標頭驗證。
   - 後端 Python Dash（`/ops/dash/*`）透過 `POST /ops/dash-session` 核發 `HttpOnly`、`SameSite=Lax` 的 HMAC-SHA256 簽章 Cookie（`joeat_ops_dash`，由 `ID_HASH_SECRET` 與 `OPS_API_KEY` 共同衍生，8 小時有效；更換金鑰或呼叫 `POST /ops/dash-logout` 登出即刻失效）。未攜帶有效 Cookie 直接開啟 `/ops/dash/` 會被中介層阻擋並回傳 401。
 
+### 技術統計報告（`/tech-reports`）
+- 以 Next.js 伺服器端即時掃描（`frontend/lib/techReportCollector.ts`）動態彙整專案技術指標，包含：
+  - **程式碼統計**：總行數、檔案數、語言組成佔比、模組分佈與前 15 大核心檔案排行（支援欄位排序與窄螢幕卡片自適應）。
+  - **Git 提交紀錄**：貢獻者摘要、提交歷史時間軸、增刪行數比例與工作樹待提交變更明細。
+  - **套件依賴清單**：彙整前端 `package.json`（含 `package-lock.json` 解析總數）與後端 `requirements*.txt`，支援即時搜尋與生態系／依賴類型篩選。
+  - **系統架構與測試**：列出 FastAPI 路由端點、Alembic 資料庫遷移歷程、單元／整合測試套件與 Next.js 頁面路由。
+
 ## 專案結構
 
 ```
@@ -101,7 +108,7 @@ joeat/
     alembic/versions/   0001 schema、0002 MVP 欄位
     scripts/            dev_postgres.py、seed.py、demo.py、seed_demo_merchants.py
     tests/              unit/、integration/
-  frontend/           Next.js(App Router)+ Tailwind CSS + LIFF SDK:前台聚餐流程 + /ops 管理員審核後台
+  frontend/           Next.js(App Router)+ Tailwind CSS + LIFF SDK:前台聚餐流程 + /ops 管理員審核後台 + /tech-reports 技術統計報告
   data/seed/          01 屬性與規則、02 餐廳與證據、03 一家額外的火鍋店
   data/raw/           OSM 捷運/輕軌站(集合點座標來源)
   docs/               推薦合約、ER 規格、schema 驗證報告、資料可行性報告
