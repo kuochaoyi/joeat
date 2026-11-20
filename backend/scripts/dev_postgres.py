@@ -6,9 +6,9 @@
 Uses the `pgserver` package (dev dependency). For a real deployment use PostgreSQL 14+ (see docker/docker-compose.yml).
 """
 import argparse
-import re
 import sys
 from pathlib import Path
+from urllib.parse import urlsplit, urlunsplit
 
 import pgserver
 import psycopg
@@ -40,8 +40,8 @@ def main() -> int:
         exists = conn.execute("SELECT 1 FROM pg_database WHERE datname = %s", (DB_NAME,)).fetchone()
         if not exists:
             conn.execute(f"CREATE DATABASE {DB_NAME} ENCODING 'UTF8' TEMPLATE template0")
-    m = re.match(r"postgresql://([^:@/]+)(?::[^@]*)?@([^/]+)/", admin_uri)
-    url = f"postgresql+psycopg://{m.group(1)}@{m.group(2)}/{DB_NAME}"
+    parts = urlsplit(admin_uri)
+    url = urlunsplit(("postgresql+psycopg", parts.netloc, f"/{DB_NAME}", parts.query, parts.fragment))
     write_env(url)
     print("embedded PostgreSQL is running")
     print("DATABASE_URL =", url, "(written to backend/.env)")
