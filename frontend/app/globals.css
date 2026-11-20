@@ -82,9 +82,10 @@
     padding: 16px 16px 120px;
   }
 
-  /* 審核後台與管理員登入頁自動解除手機版 500px 寬度限制 */
+  /* 審核後台、管理員登入頁與作業導覽首頁自動解除手機版 500px 寬度限制 */
   main:has(.ops-shell-root),
-  main:has(.ops-login-root) {
+  main:has(.ops-login-root),
+  main:has(.homework-hub-root) {
     max-width: none;
     margin: 0;
     padding: 0;
