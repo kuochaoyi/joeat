@@ -1,0 +1,3 @@
+-r requirements.txt
+pytest>=8
+pgserver>=0.1.4      # embedded PostgreSQL for machines without Docker/Postgres (scripts/dev_postgres.py)

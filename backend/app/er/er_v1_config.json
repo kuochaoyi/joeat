@@ -1,0 +1,77 @@
+{
+  "version": "er_v1_provisional",
+  "status": "provisional",
+  "note": "Every number below is a starting point, NOT a validated value. Re-tune against er_gold_set.csv (and a larger gold set) before use.",
+  "thresholds": {
+    "auto_match_threshold": 70,
+    "probable_threshold": 50,
+    "manual_review_threshold": 30
+  },
+  "address": {
+    "exact_key": 40,
+    "same_main_number_sub_differs": 30,
+    "near_same_road_same_parity_within_2": 10,
+    "both_present_but_different": -10,
+    "missing_either": 0,
+    "road_suffix_variant_same_number": 25,
+    "note_road_suffix": "same lane/number but road suffix 路 vs 街 differs (typo-level variation)"
+  },
+  "name": {
+    "max_points": 40,
+    "exact_clean": 40,
+    "containment_min_chars": 3,
+    "containment_points": 34,
+    "alias_exact_points": 36,
+    "generic_name_multiplier": 0.5,
+    "idf_weighted_bigram_jaccard_max_points": 40,
+    "note_idf": "character bigrams weighted by 1/(1+ln(document frequency)) over the district's name corpus, so shared common tokens (家, 肉粽, 小吃) count little"
+  },
+  "geo": {
+    "within_30m": 20,
+    "within_80m": 12,
+    "within_200m": 4,
+    "within_500m": 0,
+    "beyond_500m": -15,
+    "note": "tax registry has no coordinates until geocoded; geo contributes 0 when either side lacks coordinates"
+  },
+  "category": {
+    "compatible": 10,
+    "neutral": 0,
+    "incompatible": -25,
+    "tax_industry_non_food_veto": -40
+  },
+  "ambiguity": {
+    "multi_tenant_per_other_food_entity": 5,
+    "multi_tenant_cap": 15,
+    "apply_when_name_points_below": 30,
+    "runner_up_margin_points": 5,
+    "runner_up_penalty": 10,
+    "generic_name_penalty": 10,
+    "stall_or_market_address_penalty": 5
+  },
+  "guard_rails": [
+    "never auto_match when category veto applies",
+    "never auto_match when ambiguity penalty >= 10",
+    "never auto_match from name alone when either side has an address and they differ (route to probable/review)"
+  ],
+  "generic_names": [
+    "豆花",
+    "米糕",
+    "滷味",
+    "小吃",
+    "早餐",
+    "冰",
+    "婆婆冰",
+    "阿婆冰",
+    "飯糰",
+    "蛋餅",
+    "茶",
+    "咖啡",
+    "麵店",
+    "鹽酥雞",
+    "水煎包",
+    "肉粽",
+    "牛肉麵",
+    "排骨飯"
+  ]
+}

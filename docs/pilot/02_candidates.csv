@@ -1,0 +1,32 @@
+﻿name,address,phone,phone_is_mobile,cuisines,pool_status,independent_sources,hours,third_party_evidence,phone_callback_eligible,wave1
+Big Mama,高雄市鹽埕區大勇路78號,+886 7 531 1829,False,義式,candidate,1,single_source,0,False,False
+Do good coffee & dessert,高雄市鹽埕區必信街116號,+886 75213635,False,咖啡廳、甜點,in_pool,1,single_source,0,True,True
+HATA烏克蘭廚房,高雄市鹽埕區五福四路150號,,False,其他,candidate,1,,0,False,False
+Thai Funk Cafe,,,False,東南亞,candidate,1,,1,False,False
+The Borage 琉璃苣,高雄市鹽埕區瀨南街141之7號,+886 933486259,True,其他、素食,in_pool,2,conflict,2,True,True
+九記 鹽埕食糖水,高雄市鹽埕區鹽埕路36巷23號,+886 7 531 4007,False,甜點,in_pool,1,conflict,2,True,True
+千葉養生素食,高雄市鹽埕區大義街131號,,False,素食,candidate,1,single_source,1,False,False
+大智羊肉,,,False,中式、其他,candidate,1,single_source,0,False,False
+大溝頂虱目魚米粉湯,高雄市鹽埕區新樂街198-38號,+886 7 5214919,False,小吃、台式、海鮮,in_pool,1,agree,1,True,False
+小韓國,,,False,韓式,candidate,1,single_source,0,False,False
+平津涮牛肉,高雄市鹽埕區大勇路8號,,False,中式、火鍋,candidate,1,single_source,1,False,False
+田記豆漿,高雄市鹽埕區新樂街75之3號,,False,台式、早午餐,in_pool,1,agree,2,False,False
+好貳,,,False,火鍋、素食,candidate,1,,1,False,False
+汕頭天天沙茶火鍋,高雄市鹽埕區七賢三路240號,,False,火鍋,in_pool,2,,0,False,False
+老蔡虱目魚粥,高雄市鹽埕區瀨南街201號,+886 7 5519689,False,小吃、台式、海鮮,in_pool,1,conflict,1,True,False
+里歐歐式早餐(五福四路131號),高雄市鹽埕區五福四路131號,07-5214698,False,早午餐,in_pool,1,agree,0,True,False
+東京小城,,,False,中式、日式、熱炒,in_pool,1,,0,False,False
+阿英排骨飯,高雄市鹽埕區富野路79-2號,+886 7 521 5562,False,小吃、台式,in_pool,1,single_source,1,True,False
+柒壹喫堂,高雄市鹽埕區大公路71號,+886 7 521 6971,False,日式、早午餐,in_pool,1,conflict,0,True,True
+香港馬興記燒臘臘味專賣店,,,False,中式、港式,candidate,1,,1,False,False
+泰老食,,,False,東南亞,candidate,1,single_source,0,False,False
+郭家肉粽,高雄市鹽埕區北斗街19號,+886 7 551 2747,False,小吃、台式,in_pool,1,agree,2,True,False
+陶湘火鍋店,,,False,中式、火鍋,candidate,1,single_source,0,False,False
+傑克兄弟牛排,,,False,牛排、美式,candidate,1,single_source,1,False,False
+港園牛肉麵,高雄市鹽埕區大成街55號,+886 7 561 3842,False,小吃、中式、台式,in_pool,1,single_source,3,True,True
+鴨肉珍,高雄市鹽埕區五福四路258號,07-521-5018,False,小吃、台式,in_pool,2,agree,2,True,True
+禪風蔬藝,高雄市鹽埕區七賢二路455之1號,+886 908210720,True,素食,candidate,1,single_source,2,False,False
+黛麗莎,高雄市鹽埕區五福四路146號,,False,其他,candidate,1,single_source,0,False,False
+蟳市長,高雄市鹽埕區七賢三路257號,07-5611537,False,小吃、海鮮,in_pool,1,conflict,2,True,False
+鐘庵日本料理,高雄市鹽埕區五福四路65號,,False,日式,candidate,1,,0,False,False
+鹽埕町冰果室,高雄市鹽埕區富野路56巷10號,+886 7 561 0039,False,甜點,candidate,1,single_source,0,False,False

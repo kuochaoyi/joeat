@@ -1,0 +1,58 @@
+C:\pj_joeat\joeat\backend\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
+  from starlette.testclient import TestClient as TestClient  # noqa
+AUTH_MODE=dev: the client supplies its own line_user_id. Not for production.
+AUTH_MODE=dev: the client supplies its own line_user_id. Not for production.
+RESULT: 52 passed, 0 failed
+
+PASS A1 an invited (unverified) claim cannot start a declaration
+PASS A2 'verified' without a method / verifier is rejected
+PASS A3 'strong' via a channel message is rejected (strong needs a callback or a visit)
+PASS A4 a claim cannot declare for another restaurant
+PASS B1 basic-level absence -> LIKELY_ABSENT (never CONFIRMED)
+PASS B2 engine: LIKELY_ABSENT on a critical allergen = WARN critical, no safe badge
+PASS B3 evidence carries basis, MEDIUM confidence, 90-day validity, cross-contact note
+PASS B4 declaration became approved and an audit trail exists
+PASS C1 strong + menu -> CONFIRMED_ABSENT with official_menu basis
+PASS C2 engine: CONFIRMED_ABSENT -> PASS with a safe badge, citing the first-party basis
+PASS C3 API card shows the confirmed attribute (when the restaurant is in the Top 3)
+PASS C4 the earlier basic-level claim was retired by the new declaration
+PASS C5 seafood 'present in some dishes' -> CONFIRMED_PRESENT (coarse by design: the restaurant is excluded for seafood avoiders)
+PASS C6 engine: that presence claim excludes the restaurant for a seafood avoider
+PASS C7 require-type 'not_offered' -> CONFIRMED_ABSENT (a vegetarian is excluded)
+PASS D1 declaring 'no peanut' against third-party 'peanut zongzi' evidence is blocked
+PASS D2 ... and nothing changed (still LIKELY_PRESENT, declaration still 'submitted')
+PASS D3 a named reviewer can supersede LIKELY_* evidence explicitly -> CONFIRMED_ABSENT
+PASS D4 the superseded row points at its replacement and the override is audited
+PASS D5 a declaration can never override CONFIRMED_PRESENT evidence (restaurant name 牛肉麵), even with p_supersede
+PASS D6 beef is still CONFIRMED_PRESENT
+PASS E1 'offered' is not a valid answer for an avoid-type attribute
+PASS E2 'absent_entire_menu' is not valid for a require-type attribute
+PASS E3 every attribute starts as not_sure (silence stays UNKNOWN)
+PASS E4 a menu date in the future is rejected
+PASS E5 a menu older than 180 days is rejected
+PASS E6 valid_days above 180 is rejected
+PASS E7 publishing a draft (not submitted) is rejected
+PASS E8 publishing without a named reviewer is rejected
+PASS E9 an approved declaration's items are frozen
+PASS E10 an approved declaration cannot be deleted (history is kept)
+PASS E11 the audit log is append-only
+PASS E12 'approved' without attestation / reviewer is rejected
+PASS E13 an invalid answer value is rejected
+PASS E14 even a draft cannot be deleted once the audit trail exists (history is kept; withdraw it instead)
+PASS E15 halal 'offered' without a certificate stays LIKELY_PRESENT even for a strong claim
+PASS E16 ... and CONFIRMED_PRESENT once a certificate reference is given
+PASS F1 peanut left as not_sure in the new declaration -> the old CONFIRMED_ABSENT is retired -> UNKNOWN
+PASS F2 tree_nut re-asserted: same evidence row renewed, not duplicated
+PASS F3 a complete re-declaration restores peanut / tree_nut CONFIRMED_ABSENT and seafood CONFIRMED_PRESENT
+PASS G1 an allergic-reaction report suspends the restaurant's positive claims immediately
+PASS G2 ... but a 'contains X' claim is NOT suspended (that would make the venue look safer)
+PASS G3 engine: back to WARN critical while the incident is open
+PASS G4 dismissing the incident reinstates the claims
+PASS G5 a wrong_info report for one attribute suspends only that attribute
+PASS G6 a confirmed incident retires the claim and revokes the restaurant's verified claims
+PASS G7 an incident cannot be resolved twice
+PASS H1 egg CONFIRMED_ABSENT is visible
+PASS H3a (precondition) the egg evidence row exists and is active
+PASS H3 the original evidence rule still blocks CONFIRMED_ABSENT beyond 180 days
+PASS H2 once valid_until has passed the claim disappears on its own (=> UNKNOWN)
+PASS H4 the 3 test-fixture claims remain hidden
