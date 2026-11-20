@@ -5,13 +5,17 @@ This is a pilot-grade gate for a few operators, not user management: the name is
 """
 from __future__ import annotations
 
+import base64
+import hashlib
 import hmac
+import time
 import uuid
 from typing import Literal
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Header, Query
+from fastapi import APIRouter, Depends, Header, Query, Response
 from pydantic import BaseModel, Field
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_db
@@ -21,6 +25,42 @@ from app.services import merchant as svc
 from app.services import reports as reports_svc
 
 CLAIMANT_ROLES = Literal["owner", "manager", "staff"]
+DASH_COOKIE_NAME = "joeat_ops_dash"
+DASH_COOKIE_TTL_SECONDS = 8 * 60 * 60
+
+
+def _dash_signing_key() -> bytes:
+    """使用系統雜湊密鑰與審核金鑰共同衍生簽章密鑰；當 OPS_API_KEY 變更或清空時舊工作階段立即失效。"""
+    settings = get_settings()
+    raw = f"{settings.id_hash_secret}:{settings.ops_api_key}:ops-dash".encode()
+    return hashlib.sha256(raw).digest()
+
+
+def sign_dash_cookie(user: str, ttl_seconds: int = DASH_COOKIE_TTL_SECONDS) -> str:
+    """簽發含過期時間的 Python Dash 存取權杖。"""
+    exp = int(time.time()) + ttl_seconds
+    payload = base64.urlsafe_b64encode(f"{exp}|{user}".encode("utf-8")).decode("ascii")
+    sig = hmac.new(_dash_signing_key(), payload.encode("ascii"), hashlib.sha256).hexdigest()
+    return f"{payload}.{sig}"
+
+
+def verify_dash_cookie(token: str | None) -> str | None:
+    """驗證 Python Dash 存取 Cookie，成功時回傳管理員姓名，否則回傳 None。"""
+    settings = get_settings()
+    if not settings.ops_api_key or not token or "." not in token:
+        return None
+    payload, sig = token.rsplit(".", 1)
+    expected = hmac.new(_dash_signing_key(), payload.encode("ascii"), hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(sig, expected):
+        return None
+    try:
+        decoded = base64.urlsafe_b64decode(payload.encode("ascii")).decode("utf-8")
+        exp_str, user = decoded.split("|", 1)
+        if int(exp_str) < int(time.time()) or len(user.strip()) < 2:
+            return None
+        return user
+    except Exception:
+        return None
 
 
 def require_ops(x_ops_key: str | None = Header(default=None), x_ops_user: str | None = Header(default=None)) -> str:
@@ -37,6 +77,49 @@ def require_ops(x_ops_key: str | None = Header(default=None), x_ops_user: str | 
 
 
 router = APIRouter(prefix="/ops", tags=["ops"], dependencies=[Depends(require_ops)])
+public_router = APIRouter(prefix="/ops", tags=["ops"])
+
+
+@router.get("/summary")
+def ops_summary(user: str = Depends(require_ops), db: Session = Depends(get_db)):
+    """回傳目前登入管理員姓名與各審核佇列即時統計，供儀表板與側邊欄徽章使用。"""
+    counts_row = db.execute(text(
+        "SELECT "
+        "  (SELECT count(*) FROM merchant.declaration WHERE status = 'submitted') AS pending_declarations, "
+        "  (SELECT count(*) FROM product.restaurant_report WHERE status = 'open') AS open_reports, "
+        "  (SELECT count(*) FROM merchant.incident_report WHERE status = 'open') AS open_incidents, "
+        "  (SELECT count(*) FROM merchant.claim WHERE status IN ('invited', 'verified')) AS active_claims, "
+        "  (SELECT count(*) FROM identity.restaurant WHERE merged_into_restaurant_id IS NULL) AS total_restaurants, "
+        "  (SELECT count(*) FROM product.dining_session) AS total_sessions"
+    )).mappings().one()
+    recent_pending = svc.list_declarations(db, "submitted")[:5]
+    return {
+        "user": user,
+        "counts": {k: int(v) for k, v in counts_row.items()},
+        "recent_pending_declarations": recent_pending,
+    }
+
+
+@router.post("/dash-session")
+def create_dash_session(response: Response, user: str = Depends(require_ops)):
+    """核發 Python Dash 儀表板專用的 HttpOnly 簽章 Cookie。"""
+    token = sign_dash_cookie(user)
+    response.set_cookie(
+        key=DASH_COOKIE_NAME,
+        value=token,
+        max_age=DASH_COOKIE_TTL_SECONDS,
+        httponly=True,
+        samesite="lax",
+        path="/",
+    )
+    return {"ok": True, "user": user}
+
+
+@public_router.post("/dash-logout")
+def clear_dash_session(response: Response):
+    """登出時清除 Python Dash 專用 Cookie。"""
+    response.delete_cookie(key=DASH_COOKIE_NAME, path="/")
+    return {"ok": True}
 
 
 class ClaimCreate(BaseModel):

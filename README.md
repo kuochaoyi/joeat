@@ -67,12 +67,32 @@ cd joeat\backend
 cd ..\frontend; npm run typecheck; npm run build
 ```
 
+## 審核後台與管理員設計（`/ops` + Python Dash）
+
+審核後台用於管理店家自填聲明、認領驗證、使用者回報、緊急煞車事故與營運數據洞察。前台首頁（`/`）刻意不放置入口，管理員直接由 `/ops` 進入。
+
+### 路由與選單架構
+- **`/ops/login`（獨立管理員登入頁）**：沿用既有 `OPS_API_KEY` 共用金鑰與稽核姓名驗證（不更動資料庫），支援金鑰顯示切換、啟用中管理員快選、停用名單阻擋與 `next` 安全導回；登入成功時同步核發 Python Dash 專用簽章 Cookie。
+- **`/ops`（總覽儀表板）**：呈現待審店家聲明、待處理使用者回報、未結案事故與認領統計等核心 KPI 卡片，以及最新待審聲明摘要與快速操作入口。
+- **`/ops/analytics`（數據分析 · Python Dash）**：以全高響應式 `<iframe>` 無縫嵌入後端 FastAPI 掛載的 Plotly Dash 應用（`/ops/dash/`），提供「包含示範資料」切換、即時重新整理、5 張 KPI 卡片與 4 張互動圖表（聲明狀態分布、餐廳候選池分布、回報與事故類型分析、近 14 日聚餐開團與參與趨勢）。
+- **`/ops/declarations` 與 `/ops/declarations/[id]`（聲明審核）**：檢視待審／補件／已核准／已駁回／草稿佇列、矛盾證據與稽核軌跡，執行核准發布、退回補件、駁回或撤下。
+- **`/ops/claims`（認領與驗證）**：邀請餐廳並產生一次性連結，記錄電話回撥、實地確認或官方菜單覆核留痕。
+- **`/ops/reports`（使用者回報）** 與 **`/ops/incidents`（事故處理）**：查證使用者回報並決定駁回或升級為事故（觸發正向聲明緊急煞車）。
+- **`/ops/admins`（管理員帳號管理）**：試辦階段採瀏覽器本機名冊（`localStorage`，不更動資料庫），支援新增管理員與啟用／停用切換（內建防自我鎖定保護，避免停用正在操作中的本人）。
+
+### 版面與安全機制
+- **響應式導覽（`OpsShell`）**：桌面版採左側固定側邊欄（260px）並即時顯示待辦紅點徽章；行動版自動切換為頂部標題列與滑出抽屜選單（支援 `Esc` 關閉）。透過 `main:has(.ops-shell-root)` 自動解除前台 500px 手機窄版限制，完全不影響前台畫面。
+- **雙層驗證保護**：
+  - 後端 REST API（`/ops/*`）透過 `X-Ops-Key` 與百分比編碼的 `X-Ops-User` 標頭驗證。
+  - 後端 Python Dash（`/ops/dash/*`）透過 `POST /ops/dash-session` 核發 `HttpOnly`、`SameSite=Lax` 的 HMAC-SHA256 簽章 Cookie（`joeat_ops_dash`，由 `ID_HASH_SECRET` 與 `OPS_API_KEY` 共同衍生，8 小時有效；更換金鑰或呼叫 `POST /ops/dash-logout` 登出即刻失效）。未攜帶有效 Cookie 直接開啟 `/ops/dash/` 會被中介層阻擋並回傳 401。
+
 ## 專案結構
 
 ```
 joeat/
-  backend/            FastAPI + SQLAlchemy + Alembic
-    app/api/            REST 路由、LINE webhook
+  backend/            FastAPI + SQLAlchemy + Alembic + Python Dash
+    app/api/            REST 路由、LINE webhook、審核後台 API（ops.py）
+    app/dash_app.py     Python Dash（Plotly）互動式營運數據儀表板（掛載於 /ops/dash/）
     app/recommendation/ 純 Python 推薦引擎:hard_filter / scoring / ranking / engine / explain / rules
     app/services/       sessions、recommendations(載入→引擎→存證→回傳)、restaurants、line_bot
     app/models/         SQLAlchemy 模型(對映 schema_v2.sql 建出的資料表)
@@ -81,7 +101,7 @@ joeat/
     alembic/versions/   0001 schema、0002 MVP 欄位
     scripts/            dev_postgres.py、seed.py、demo.py、seed_demo_merchants.py
     tests/              unit/、integration/
-  frontend/           Next.js(App Router)+ LIFF SDK:4 個畫面 + 聚餐首頁
+  frontend/           Next.js(App Router)+ Tailwind CSS + LIFF SDK:前台聚餐流程 + /ops 管理員審核後台
   data/seed/          01 屬性與規則、02 餐廳與證據、03 一家額外的火鍋店
   data/raw/           OSM 捷運/輕軌站(集合點座標來源)
   docs/               推薦合約、ER 規格、schema 驗證報告、資料可行性報告

@@ -287,3 +287,32 @@ def test_incident_suspends_positive_claims_and_resolution_restores_or_revokes(en
 def test_constraint_class_comes_from_the_reason_then_the_attribute_default(env, reason, attribute, expected):
     _, db = env
     assert db.scalar(text("SELECT ref.effective_constraint_class(:r, :a)"), {"r": reason, "a": attribute}) == expected
+
+
+def test_ops_summary_and_dash_session_protection(env):
+    """驗證 /ops/summary 統計端點與 Python Dash (/ops/dash/) 的 Cookie 存取保護流程。"""
+    client, _db = env
+    # 未帶驗證標頭呼叫 summary 與未帶 Cookie 存取 Dash 一律回傳 401
+    assert client.get("/ops/summary").status_code == 401
+    assert client.get("/ops/dash/").status_code == 401
+
+    # 帶管理員標頭呼叫 summary 應回傳統計計數
+    summary = client.get("/ops/summary", headers=H)
+    assert summary.status_code == 200
+    body = summary.json()
+    assert body["user"] == "rev-1"
+    for key in ("pending_declarations", "open_reports", "open_incidents", "active_claims", "total_restaurants", "total_sessions"):
+        assert isinstance(body["counts"][key], int)
+
+    # 簽發 Dash Cookie 後應能正常存取 /ops/dash/ 與 Dash 版面設定
+    sess = client.post("/ops/dash-session", headers=H)
+    assert sess.status_code == 200 and sess.json()["ok"] is True
+    dash_html = client.get("/ops/dash/")
+    assert dash_html.status_code == 200 and "揪呷 JOEAT" in dash_html.text
+    dash_layout = client.get("/ops/dash/_dash-layout")
+    assert dash_layout.status_code == 200
+
+    # 登出清除 Cookie 後再次存取應被擋下
+    logout = client.post("/ops/dash-logout")
+    assert logout.status_code == 200
+    assert client.get("/ops/dash/").status_code == 401

@@ -40,7 +40,7 @@ function Review() {
   const answered = new Map(d.items.map((i) => [i.attribute_code, i]));
   return (
     <div>
-      <p><Link href="/ops" className="muted">← 回到清單</Link></p>
+      <p><Link href="/ops/declarations" className="muted">← 回到聲明清單</Link></p>
       <h2 style={{ margin: 0 }}>#{x.declaration_id} {x.restaurant} {c.is_demo && <span className="effect possible">示範資料</span>} <span className="effect contains" style={{ background: "var(--chip)", color: "var(--ink)" }}>{x.status}</span></h2>
       <p className="muted">{x.canonical_address ?? "地址未知"} · {x.phone ?? "電話未知"}</p>
       <ErrorBox message={error} />
