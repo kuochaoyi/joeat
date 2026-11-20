@@ -67,6 +67,32 @@ cd joeat\backend
 cd ..\frontend; npm run typecheck; npm run build
 ```
 
+## 前台 UI/UX 遊戲化設計（聚餐核心流程）
+
+前台針對行動優先（Mobile-First / LINE LIFF）體驗全面重構，採用 **Tailwind CSS + `lucide-react` + `Noto Sans TC`** 打造「活潑年輕、遊戲化聚餐風格」，完整支援淺色／深色雙主題與 `prefers-reduced-motion`。
+
+### 聚餐決策流程
+```mermaid
+flowchart LR
+  A["1. 建立聚餐 /"] --> B["2. 填寫底線 /constraints"]
+  B --> C["3. 想吃的料理 /preferences"]
+  C --> D["4. 聚餐主頁 /s/[id]"]
+  D -. "選填趣味" .-> E["飲食測驗 /type"]
+  D -. "投票模式" .-> F["時間票選 /time"]
+  D --> G["5. 推薦 Top 3 /results"]
+  G --> H["6. 最後投票 /vote"]
+```
+
+### 核心互動與元件亮點
+- **遊戲化關卡與手感**：頂部 `JourneyHeader` 顯示 5 關卡流程進度；主按鈕具備微立體按壓手感（`GameButton`）；聚餐主頁提供斜紋光澤集氣進度條（`Meter`）與成員完成氣泡；載入中以骨架屏（`SkeletonCard`）取代空白等待。
+- **單題推進式飲食測驗（`/s/[id]/type`）**：9 題改為單題專注卡片，點選後自動推進下一題並支援題號點點跳轉，結果頁呈現「吃貨角色卡」並可一鍵帶入料理偏好。
+- **動態心情色階投票（`/s/[id]/vote`）**：0–10 分拉桿依分數即時切換表情與色階（😕 不太想 → 🤩 非吃不可），搭配開獎慶祝卡片與心情統計膠囊。
+- **現代無障礙原生互動**：
+  - `ConfirmDialog`：採原生 `<dialog>` + `showModal()` 防滾動穿透，安全按鈕預設聚焦，保護「重填限制」「結束時間票選」「結束最後投票」避免誤觸。
+  - `Hint`：採原生 `<details>` 搭配 `::details-content` 平滑展開動畫。
+  - `Toast`：採 `popover="manual"` 與固定 `aria-live` 區域，提供複製連結、儲存設定等非阻斷回饋。
+- **安全呈現鐵律（詳見 [docs/ui_design.md](docs/ui_design.md)）**：系統中絕不出現「安全」字樣；過敏原「資料不足」與重要／注意警示永遠留在餐廳卡片表面不收合；免責聲明常駐於限制頁與結果頁底部。
+
 ## 審核後台與管理員設計（`/ops` + Python Dash）
 
 審核後台用於管理店家自填聲明、認領驗證、使用者回報、緊急煞車事故與營運數據洞察。前台首頁（`/`）刻意不放置入口，管理員直接由 `/ops` 進入。
