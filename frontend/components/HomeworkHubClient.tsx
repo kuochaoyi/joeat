@@ -2,23 +2,36 @@
 // 作業導覽首頁互動元件：彙整所有主題入口連結、快速跳轉工具、後端連線檢查與操作小幫手
 import {
   Activity,
+  ArrowRight,
   ArrowUpRight,
   BarChart3,
   BookOpen,
+  Check,
   CheckCircle2,
   ClipboardCopy,
+  Coffee,
   Compass,
   ExternalLink,
   FileCode2,
+  Flame,
   GraduationCap,
   HelpCircle,
+  Keyboard,
   KeyRound,
   LifeBuoy,
+  MapPin,
+  Pause,
+  Play,
+  PlayCircle,
   RefreshCw,
+  Server,
+  ShieldAlert,
   ShieldCheck,
+  Soup,
   Sparkles,
   Store,
   Terminal,
+  Users,
   UtensilsCrossed,
   XCircle,
 } from "lucide-react";
@@ -212,6 +225,9 @@ export function HomeworkHubClient() {
   const accordionRef = useRef<HTMLDivElement | null>(null);
   const [allExpanded, setAllExpanded] = useState(false);
 
+  // 背景動畫暫停／播放控制（符合 WCAG 2.2.2 Pause, Stop, Hide）
+  const [motionPaused, setMotionPaused] = useState(false);
+
   const checkBackend = useCallback(async () => {
     setApiState("checking");
     try {
@@ -270,8 +286,43 @@ export function HomeworkHubClient() {
   }
 
   return (
-    <div className="homework-hub-root min-h-screen bg-bg pb-16">
-      <div className="mx-auto max-w-[1120px] space-y-8 px-4 pt-6 sm:px-6 md:pt-8">
+    <div
+      className="homework-hub-root relative min-h-screen overflow-x-clip bg-bg pb-16"
+      data-motion={motionPaused ? "paused" : "running"}
+    >
+      {/* 背景動態氛圍層：柔和漸層光暈與聚餐主題浮動微圖示（對輔助科技隱藏） */}
+      <div className="hub-bg-stage" aria-hidden="true">
+        <div className="hub-orb hub-orb-1" />
+        <div className="hub-orb hub-orb-2" />
+        <div className="hub-orb hub-orb-3" />
+
+        <UtensilsCrossed
+          className="hub-float-icon left-[5%] top-[14%] h-10 w-10"
+          style={{ ["--float-duration" as string]: "9s", ["--float-delay" as string]: "0s" }}
+        />
+        <Soup
+          className="hub-float-icon right-[7%] top-[20%] h-11 w-11"
+          style={{ ["--float-duration" as string]: "11s", ["--float-delay" as string]: "-2s" }}
+        />
+        <Flame
+          className="hub-float-icon left-[8%] top-[54%] h-9 w-9"
+          style={{ ["--float-duration" as string]: "10s", ["--float-delay" as string]: "-4s" }}
+        />
+        <MapPin
+          className="hub-float-icon right-[9%] top-[60%] h-10 w-10"
+          style={{ ["--float-duration" as string]: "12s", ["--float-delay" as string]: "-1.5s" }}
+        />
+        <Coffee
+          className="hub-float-icon left-[16%] bottom-[10%] h-9 w-9"
+          style={{ ["--float-duration" as string]: "10.5s", ["--float-delay" as string]: "-3s" }}
+        />
+        <Sparkles
+          className="hub-float-icon right-[14%] bottom-[12%] h-8 w-8"
+          style={{ ["--float-duration" as string]: "8.5s", ["--float-delay" as string]: "-5s" }}
+        />
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-[1120px] space-y-8 px-4 pt-6 sm:px-6 md:pt-8">
         {/* 無障礙跳過導覽連結 */}
         <a
           href="#topics"
@@ -282,8 +333,8 @@ export function HomeworkHubClient() {
 
         {/* 頂部作業展示 Hero 區 */}
         <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-2 to-brand p-6 text-white shadow-hero md:p-8">
-          <div className="pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
-          <div className="pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-black/10 blur-2xl" />
+          <div className="hub-hero-orb pointer-events-none absolute -right-12 -top-12 h-48 w-48 rounded-full bg-white/15 blur-2xl" />
+          <div className="hub-hero-orb pointer-events-none absolute -bottom-16 left-1/3 h-40 w-40 rounded-full bg-black/10 blur-2xl" />
 
           <div className="relative flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
             <div className="space-y-3">
@@ -367,6 +418,23 @@ export function HomeworkHubClient() {
               <LifeBuoy className="h-3.5 w-3.5" aria-hidden="true" />
               操作小幫手與指南
             </a>
+            <button
+              type="button"
+              onClick={() => setMotionPaused((prev) => !prev)}
+              className="ml-auto inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/30 bg-black/15 px-3.5 py-1.5 text-white transition hover:bg-black/25"
+            >
+              {motionPaused ? (
+                <>
+                  <Play className="h-3.5 w-3.5" aria-hidden="true" />
+                  播放背景動畫
+                </>
+              ) : (
+                <>
+                  <Pause className="h-3.5 w-3.5" aria-hidden="true" />
+                  暫停背景動畫
+                </>
+              )}
+            </button>
           </nav>
         </header>
 
@@ -385,8 +453,12 @@ export function HomeworkHubClient() {
           </div>
 
           <div className="hub-topic-grid">
-            {TOPIC_LINKS.map((item) => (
-              <article key={item.id} className="hub-card">
+            {TOPIC_LINKS.map((item, idx) => (
+              <article
+                key={item.id}
+                className="hub-card"
+                style={{ ["--card-delay" as string]: `${idx * 45}ms` }}
+              >
                 <header className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-brand-soft">
@@ -426,17 +498,16 @@ export function HomeworkHubClient() {
                   {item.highlights.map((hl) => (
                     <li
                       key={hl}
-                      className="rounded-lg border border-line bg-bg px-2.5 py-1 text-xs font-bold text-ink"
+                      className="inline-flex items-center gap-1 rounded-lg border border-line bg-bg px-2.5 py-1 text-xs font-bold text-ink"
                     >
+                      <Check className="h-3 w-3 shrink-0 text-brand" aria-hidden="true" />
                       {hl}
                     </li>
                   ))}
                 </ul>
 
                 <footer className="hub-card-footer mt-auto flex flex-col gap-2 border-t border-line/80 pt-3">
-                  <span className="mono text-xs text-muted">
-                    {item.external ? item.href : item.href}
-                  </span>
+                  <span className="mono text-xs text-muted">{item.href}</span>
                   {item.subLinks && item.subLinks.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {item.subLinks.map((sub) =>
@@ -486,7 +557,12 @@ export function HomeworkHubClient() {
             <div className="flex flex-col justify-between gap-3 rounded-3xl border-2 border-line bg-surface p-5 shadow-card">
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="m-0 text-sm font-black text-ink">後端服務狀態檢查</h3>
+                  <h3 className="m-0 flex items-center gap-2 text-sm font-black text-ink">
+                    <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-brand-soft text-brand">
+                      <Server className="h-4 w-4" aria-hidden="true" />
+                    </span>
+                    後端服務狀態檢查
+                  </h3>
                   {apiState === "online" && (
                     <span className="inline-flex items-center gap-1 rounded-full bg-ok-soft px-2.5 py-0.5 text-xs font-extrabold text-ok">
                       <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -542,7 +618,12 @@ export function HomeworkHubClient() {
               className="flex flex-col justify-between gap-3 rounded-3xl border-2 border-line bg-surface p-5 shadow-card"
             >
               <div className="space-y-2">
-                <h3 className="m-0 text-sm font-black text-ink">快速前往聚餐頁面</h3>
+                <h3 className="m-0 flex items-center gap-2 text-sm font-black text-ink">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-brand-soft text-brand">
+                    <Users className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  快速前往聚餐頁面
+                </h3>
                 <label htmlFor="quick-session-id" className="block text-xs font-semibold text-muted">
                   貼上由 <code className="mono">demo.py</code> 或朋友分享的聚餐代碼（Session ID）
                 </label>
@@ -563,6 +644,7 @@ export function HomeworkHubClient() {
                 className="w-full"
               >
                 前往聚餐頁（/s/代碼）
+                <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </GameButton>
             </form>
 
@@ -572,7 +654,12 @@ export function HomeworkHubClient() {
               className="flex flex-col justify-between gap-3 rounded-3xl border-2 border-line bg-surface p-5 shadow-card"
             >
               <div className="space-y-2">
-                <h3 className="m-0 text-sm font-black text-ink">快速前往店家自填頁</h3>
+                <h3 className="m-0 flex items-center gap-2 text-sm font-black text-ink">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-xl bg-ok-soft text-ok">
+                    <Store className="h-4 w-4" aria-hidden="true" />
+                  </span>
+                  快速前往店家自填頁
+                </h3>
                 <label htmlFor="quick-merchant-token" className="block text-xs font-semibold text-muted">
                   貼上於「認領驗證」頁面產生的一次性店家權杖（Token）
                 </label>
@@ -593,6 +680,7 @@ export function HomeworkHubClient() {
                 className="w-full"
               >
                 開啟店家填寫頁（/m/權杖）
+                <ArrowRight className="h-4 w-4 text-brand" aria-hidden="true" />
               </GameButton>
             </form>
           </div>
@@ -626,7 +714,10 @@ export function HomeworkHubClient() {
           <div ref={accordionRef} className="hub-accordion">
             {/* Helper 1 */}
             <details open onToggle={syncAccordionExpandedState}>
-              <summary>如何快速走完一次「多人聚餐推薦」完整展示流程？</summary>
+              <summary>
+                <PlayCircle className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                <span>如何快速走完一次「多人聚餐推薦」完整展示流程？</span>
+              </summary>
               <div className="hub-accordion-body space-y-3">
                 <ol className="m-0 list-decimal space-y-1.5 pl-5">
                   <li>
@@ -651,7 +742,10 @@ export function HomeworkHubClient() {
 
             {/* Helper 2 */}
             <details onToggle={syncAccordionExpandedState}>
-              <summary>如何登入管理員審核後台（/ops）與測試店家自填頁（/m/權杖）？</summary>
+              <summary>
+                <KeyRound className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                <span>如何登入管理員審核後台（/ops）與測試店家自填頁（/m/權杖）？</span>
+              </summary>
               <div className="hub-accordion-body space-y-2.5">
                 <p className="m-0">
                   審核後台採用雙層驗證：輸入後端環境變數設定的 <code className="mono">OPS_API_KEY</code> 與稽核人員姓名（至少 2 字）即可登入，並會自動核發 Python Dash 專用的簽章 Cookie。
@@ -681,7 +775,10 @@ export function HomeworkHubClient() {
 
             {/* Helper 3 */}
             <details onToggle={syncAccordionExpandedState}>
-              <summary>本機開發環境啟動指令小抄（點擊即可一鍵複製）</summary>
+              <summary>
+                <Terminal className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                <span>本機開發環境啟動指令小抄（點擊即可一鍵複製）</span>
+              </summary>
               <div className="hub-accordion-body space-y-3">
                 <p className="m-0 text-xs text-muted">
                   若上方連線檢查顯示「未啟動」，請依序於終端機執行下列指令（需 Python 3.12+ 與 Node.js 20+）：
@@ -713,7 +810,10 @@ export function HomeworkHubClient() {
 
             {/* Helper 4 */}
             <details onToggle={syncAccordionExpandedState}>
-              <summary>推薦引擎的「安全優先」原則與目前資料限制說明</summary>
+              <summary>
+                <ShieldAlert className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                <span>推薦引擎的「安全優先」原則與目前資料限制說明</span>
+              </summary>
               <div className="hub-accordion-body space-y-2">
                 <ul className="m-0 list-disc space-y-1.5 pl-5">
                   <li>
@@ -731,7 +831,10 @@ export function HomeworkHubClient() {
 
             {/* Helper 5 */}
             <details onToggle={syncAccordionExpandedState}>
-              <summary>介面無障礙與鍵盤操作提示</summary>
+              <summary>
+                <Keyboard className="h-4 w-4 shrink-0 text-brand" aria-hidden="true" />
+                <span>介面無障礙與鍵盤操作提示</span>
+              </summary>
               <div className="hub-accordion-body space-y-2">
                 <p className="m-0">
                   本作業前端依循現代網頁無障礙規範建置，評審與使用者可直接透過鍵盤與輔助工具操作：

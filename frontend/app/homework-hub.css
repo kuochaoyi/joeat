@@ -1,4 +1,145 @@
-/* 作業導覽首頁（/index）專屬樣式：遵循 modern-web-guidance（card、accordion、accessibility） */
+/* 作業導覽首頁（/index）專屬樣式：遵循 modern-web-guidance（motion、icons、accessibility） */
+
+/* ===== 平滑滾動與錨點安全間距 ===== */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+#topics,
+#quick-tools,
+#helpers {
+  scroll-margin-top: 24px;
+}
+
+/* ===== 背景動態氛圍層（僅使用 transform / opacity 維持 Compositor 效能） ===== */
+.hub-bg-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.hub-orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(64px);
+  opacity: 0.45;
+  will-change: transform;
+}
+
+.hub-orb-1 {
+  top: -8%;
+  left: -6%;
+  width: min(46vw, 440px);
+  height: min(46vw, 440px);
+  background: radial-gradient(circle, rgba(255, 148, 77, 0.38) 0%, rgba(255, 107, 53, 0) 70%);
+}
+
+.hub-orb-2 {
+  top: 28%;
+  right: -10%;
+  width: min(42vw, 400px);
+  height: min(42vw, 400px);
+  background: radial-gradient(circle, rgba(255, 107, 53, 0.24) 0%, rgba(255, 148, 77, 0) 72%);
+}
+
+.hub-orb-3 {
+  bottom: -12%;
+  left: 22%;
+  width: min(48vw, 460px);
+  height: min(48vw, 460px);
+  background: radial-gradient(circle, rgba(5, 150, 105, 0.14) 0%, rgba(5, 150, 105, 0) 72%);
+}
+
+@media (prefers-color-scheme: dark) {
+  .hub-orb {
+    opacity: 0.28;
+  }
+}
+
+.hub-float-icon {
+  position: absolute;
+  color: var(--brand);
+  opacity: 0.12;
+  will-change: transform;
+}
+
+@media (prefers-color-scheme: dark) {
+  .hub-float-icon {
+    opacity: 0.14;
+  }
+}
+
+@keyframes hub-orb-drift-a {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(36px, 28px, 0) scale(1.08);
+  }
+}
+
+@keyframes hub-orb-drift-b {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-32px, -24px, 0) scale(1.06);
+  }
+}
+
+@keyframes hub-icon-float {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) rotate(-4deg);
+  }
+  50% {
+    transform: translate3d(0, -16px, 0) rotate(6deg);
+  }
+}
+
+@keyframes hub-card-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hub-orb-1 {
+    animation: hub-orb-drift-a 18s ease-in-out infinite;
+  }
+  .hub-orb-2 {
+    animation: hub-orb-drift-b 22s ease-in-out infinite;
+  }
+  .hub-orb-3 {
+    animation: hub-orb-drift-a 25s ease-in-out infinite reverse;
+  }
+  .hub-float-icon {
+    animation: hub-icon-float var(--float-duration, 9s) ease-in-out infinite;
+    animation-delay: var(--float-delay, 0s);
+  }
+  .hub-hero-orb {
+    animation: hub-orb-drift-b 14s ease-in-out infinite;
+  }
+  .hub-card {
+    animation: hub-card-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--card-delay, 0ms);
+  }
+}
+
+/* 使用者手動暫停背景動畫（WCAG 2.2.2） */
+.homework-hub-root[data-motion="paused"] .hub-orb,
+.homework-hub-root[data-motion="paused"] .hub-float-icon,
+.homework-hub-root[data-motion="paused"] .hub-hero-orb {
+  animation-play-state: paused !important;
+}
 
 /* ===== 無障礙視覺隱藏工具類（保留螢幕報讀與聚焦顯示） ===== */
 .visually-hidden:where(:not(:focus-within, :active)) {
