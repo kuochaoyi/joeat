@@ -15,8 +15,9 @@ import {
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useState } from "react";
+import { Dispatch, FormEvent, SetStateAction, useEffect, useMemo, useRef, useState } from "react";
 
+import { DateTimePicker } from "@/components/DateTimePicker";
 import { BottomBar, Chip, ErrorBox, GameButton, Hint, Logo, Seg } from "@/components/ui";
 import { createSession, getLocations } from "@/lib/api";
 import { cn } from "@/lib/cn";
@@ -27,11 +28,13 @@ import type { LocationPreset } from "@/lib/types";
 const MapPicker = dynamic(() => import("@/components/MapPicker"), {
   ssr: false,
   loading: () => (
-    <div className="flex h-[280px] items-center justify-center rounded-2xl border-2 border-line bg-chip text-sm font-semibold text-muted">
+    <div className="flex h-[230px] items-center justify-center rounded-2xl border-2 border-line bg-chip text-sm font-semibold text-muted sm:h-[280px]">
       地圖載入中…
     </div>
   ),
 });
+
+const TITLE_PRESETS = ["🍻 下班小聚", "🎂 慶生聚餐", "🎓 同學會", "🎉 慶功宴"] as const;
 
 const PERIODS = [
   ["12:00", "☀️ 午餐"],
@@ -76,7 +79,9 @@ export default function CreateSessionPage() {
   const [pets, setPets] = useState(false);
   const [kids, setKids] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [titleError, setTitleError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const titleRef = useRef<HTMLInputElement>(null);
 
   const next14 = useMemo(
     () =>
@@ -124,12 +129,25 @@ export default function CreateSessionPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (!title.trim()) {
+      const msg = "請先幫這次聚餐取個名字（或點下方靈感標籤快速填入）。";
+      setTitleError(msg);
+      setError(msg);
+      titleRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      titleRef.current?.focus();
+      return;
+    }
+    if (mode === "fixed" && (!date || !time)) {
+      setError("請選擇聚餐日期與集合時間。");
+      return;
+    }
     if (mode === "poll" && slots.length < 2) {
       setError("請至少選 2 個時段（日期 × 時段）。");
       return;
     }
     setBusy(true);
     setError(null);
+    setTitleError(null);
     try {
       const me = await getIdentity();
       const place = pin
@@ -155,35 +173,41 @@ export default function CreateSessionPage() {
     }
   }
 
-  return (
-    <form onSubmit={submit} className="space-y-3.5">
-      {/* 返回作業首頁連結 */}
-      <nav aria-label="返回導覽">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-1.5 rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-bold text-muted no-underline transition hover:border-brand hover:text-brand"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-          返回作業首頁
-        </Link>
-      </nav>
+  function selectWeekends() {
+    setDays(new Set(next14.filter((d) => d.weekend).map((d) => d.iso)));
+  }
 
-      {/* 品牌活力歡迎頂欄 */}
-      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-2 to-brand p-5 text-white shadow-hero">
-        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/15 blur-xl" />
-        <div className="relative flex items-center gap-3.5">
-          <div className="rounded-2xl bg-white/20 p-1 backdrop-blur-sm">
-            <Logo size={48} />
-          </div>
-          <div>
-            <div className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2.5 py-0.5 text-[0.72rem] font-extrabold tracking-wide">
-              <Sparkles className="h-3 w-3" aria-hidden="true" />
-              高雄鹽埕聚餐神器
+  return (
+    <form onSubmit={submit} noValidate className="space-y-3">
+      {/* 精簡手機版頂欄：整合返回鈕與品牌識別，保留首屏給表單 */}
+      <header className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-brand-2 to-brand px-4 py-3.5 text-white shadow-hero">
+        <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-white/15 blur-xl" />
+        <div className="relative flex items-center justify-between gap-2">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className="shrink-0 rounded-2xl bg-white/20 p-1 backdrop-blur-sm">
+              <Logo size={40} />
             </div>
-            <h1 className="m-0 mt-1 text-2xl font-black tracking-tight">揪呷 JOEAT</h1>
-            <p className="m-0 text-xs font-medium text-white/90">2–20 人聚餐，30 秒收集底線與口味！</p>
+            <div className="min-w-0">
+              <div className="inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[0.68rem] font-extrabold tracking-wide">
+                <Sparkles className="h-3 w-3 shrink-0" aria-hidden="true" />
+                高雄鹽埕聚餐神器
+              </div>
+              <h1 className="m-0 mt-0.5 truncate text-xl font-black tracking-tight sm:text-2xl">揪呷 JOEAT</h1>
+            </div>
           </div>
+          <nav aria-label="返回導覽" className="shrink-0">
+            <Link
+              href="/"
+              className="inline-flex min-h-[36px] items-center gap-1 rounded-full bg-white/20 px-2.5 py-1 text-xs font-extrabold text-white no-underline backdrop-blur-sm transition hover:bg-white/30 active:scale-95"
+            >
+              <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>首頁</span>
+            </Link>
+          </nav>
         </div>
+        <p className="relative m-0 mt-1.5 text-[0.75rem] font-medium text-white/90">
+          2–20 人聚餐，30 秒收集底線與口味！
+        </p>
       </header>
 
       {/* 卡片 1：聚餐名稱與人數 */}
@@ -193,14 +217,51 @@ export default function CreateSessionPage() {
           這次要揪什麼局？
         </label>
         <input
+          ref={titleRef}
           id="title"
+          name="title"
           required
           maxLength={80}
+          enterKeyHint="done"
+          aria-invalid={Boolean(titleError)}
+          aria-describedby={titleError ? "title-error" : undefined}
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            if (titleError && e.target.value.trim()) {
+              setTitleError(null);
+              setError(null);
+            }
+          }}
           placeholder="例如：高中同學聚餐、系辦慶功宴"
-          className="h-12 w-full rounded-2xl border-2 border-line bg-bg px-3.5 text-base font-semibold text-ink transition focus:border-brand focus:bg-surface focus:outline-none"
+          className={cn(
+            "h-12 w-full rounded-2xl border-2 bg-bg px-3.5 text-base font-semibold text-ink transition focus:bg-surface focus:outline-none",
+            titleError ? "border-crit focus:border-crit" : "border-line focus:border-brand"
+          )}
         />
+        {titleError && (
+          <p id="title-error" role="alert" className="mt-1.5 mb-0 text-xs font-bold text-crit">
+            {titleError}
+          </p>
+        )}
+
+        {/* 手機快速填入聚餐主題靈感膠囊 */}
+        <div className="mt-2 flex gap-1.5 overflow-x-auto pb-1">
+          {TITLE_PRESETS.map((preset) => (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => {
+                setTitle(preset);
+                setTitleError(null);
+                setError(null);
+              }}
+              className="shrink-0 rounded-full border border-line bg-chip px-2.5 py-1 text-xs font-bold text-ink transition hover:border-brand hover:text-brand active:scale-95 cursor-pointer"
+            >
+              {preset}
+            </button>
+          ))}
+        </div>
 
         <div className="mt-4">
           <div className="mb-1.5 flex items-center justify-between">
@@ -259,30 +320,36 @@ export default function CreateSessionPage() {
           ]}
         />
         {mode === "fixed" ? (
-          <div className="mt-3 grid grid-cols-2 gap-2.5">
-            <input
-              id="date"
-              aria-label="日期"
-              type="date"
-              required
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="h-12 w-full rounded-2xl border-2 border-line bg-bg px-3 text-sm font-bold text-ink focus:border-brand focus:bg-surface focus:outline-none"
-            />
-            <input
-              id="time"
-              aria-label="時間"
-              type="time"
-              required
-              value={time}
-              onChange={(e) => setTime(e.target.value)}
-              className="h-12 w-full rounded-2xl border-2 border-line bg-bg px-3 text-sm font-bold text-ink focus:border-brand focus:bg-surface focus:outline-none"
-            />
-          </div>
+          <DateTimePicker
+            date={date}
+            time={time}
+            onDateChange={setDate}
+            onTimeChange={setTime}
+          />
         ) : (
           <div data-testid="poll-setup" className="mt-3 space-y-3 animate-pop-in">
             <div>
-              <div className="mb-1.5 text-xs font-bold text-muted">勾選可能的日期（未來 14 天）</div>
+              <div className="mb-1.5 flex items-center justify-between gap-2">
+                <span className="text-xs font-bold text-muted">勾選可能的日期（未來 14 天）</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={selectWeekends}
+                    className="text-xs font-bold text-brand hover:underline cursor-pointer"
+                  >
+                    選週末
+                  </button>
+                  {days.size > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => setDays(new Set())}
+                      className="text-xs font-bold text-muted hover:text-ink cursor-pointer"
+                    >
+                      清除
+                    </button>
+                  )}
+                </div>
+              </div>
               <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
                 {next14.map((d) => {
                   const on = days.has(d.iso);
@@ -346,23 +413,51 @@ export default function CreateSessionPage() {
           <MapPin className="h-4 w-4 text-brand" aria-hidden="true" />
           集合地點
         </label>
-        <select
-          id="loc"
-          value={pin ? "map" : location}
-          onChange={(e) => {
-            if (e.target.value === "map") setShowMap(true);
-            else {
-              setPin(null);
-              setLocation(e.target.value);
-            }
-          }}
-          className="h-12 w-full rounded-2xl border-2 border-line bg-bg px-3 text-sm font-bold text-ink focus:border-brand focus:bg-surface focus:outline-none"
-        >
-          {locations.map((l) => (
-            <option key={l.key} value={l.key}>{l.label}</option>
-          ))}
-          <option value="map">📍 在地圖上選擇…</option>
-        </select>
+        {locations.length > 0 && locations.length <= 6 && !pin ? (
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="集合地點預設">
+            {locations.map((l) => {
+              const active = location === l.key;
+              return (
+                <button
+                  key={l.key}
+                  type="button"
+                  role="radio"
+                  aria-checked={active}
+                  onClick={() => {
+                    setPin(null);
+                    setLocation(l.key);
+                  }}
+                  className={cn(
+                    "min-h-[46px] rounded-2xl border-2 px-3 py-2 text-left text-xs font-extrabold transition cursor-pointer active:scale-[0.98] sm:text-sm",
+                    active
+                      ? "border-brand bg-brand-soft text-brand shadow-sm"
+                      : "border-line bg-bg text-ink hover:border-brand/40"
+                  )}
+                >
+                  <span className="line-clamp-2">{l.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        ) : (
+          <select
+            id="loc"
+            value={pin ? "map" : location}
+            onChange={(e) => {
+              if (e.target.value === "map") setShowMap(true);
+              else {
+                setPin(null);
+                setLocation(e.target.value);
+              }
+            }}
+            className="h-12 w-full rounded-2xl border-2 border-line bg-bg px-3 text-sm font-bold text-ink focus:border-brand focus:bg-surface focus:outline-none"
+          >
+            {locations.map((l) => (
+              <option key={l.key} value={l.key}>{l.label}</option>
+            ))}
+            <option value="map">📍 在地圖上選擇…</option>
+          </select>
+        )}
         <div className="mt-2.5 grid grid-cols-2 gap-2">
           <GameButton type="button" variant="secondary" size="sm" onClick={() => setShowMap((v) => !v)}>
             <MapIcon className="h-4 w-4 text-brand" aria-hidden="true" />
@@ -451,7 +546,7 @@ export default function CreateSessionPage() {
       <ErrorBox message={error} />
 
       <BottomBar>
-        <GameButton type="submit" variant="primary" className="w-full" disabled={busy || !title.trim()}>
+        <GameButton type="submit" variant="primary" className="w-full" disabled={busy}>
           {busy ? "開團中…" : "建立並填我的需求 →"}
         </GameButton>
       </BottomBar>
